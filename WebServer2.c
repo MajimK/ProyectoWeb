@@ -68,14 +68,16 @@ int main()
                 struct dirent *entry;
                 dir = opendir(ROOT_DIR);
                 char html_buffer[BUFFER_SIZE];
-                strcpy(html_buffer, "<html><body><ul>");
+                strcpy(html_buffer, "<html><head>Directorio</head><body><table><tr><th>Name</th><th>Size</th><th>Date</th></tr>");
                 while ((entry = readdir(dir)) != NULL)
                 {
-                    strcat(html_buffer, "<li>");
+                    strcat(html_buffer, "<tr>");
+                    strcat(html_buffer, "<td>");
                     strcat(html_buffer, entry->d_name);
-                    strcat(html_buffer, "</li>");
+                    strcat(html_buffer, "</td>");
+                    strcat(html_buffer, "</tr>");
                 }
-                strcat(html_buffer, "</ul></body></html>\r\n");
+                strcat(html_buffer, "</table></body></html>\r\n");
                 // FILE* file = fopen("/mnt/c/so/ws/directory.html", O_RDONLY);
 
                 //= "<html><body><h1>Hello, World!</h1></body></html>"
