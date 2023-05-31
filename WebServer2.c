@@ -15,7 +15,7 @@
 
 int main()
 {
-    int sockfd, newsockfd, status, nbytes;
+    int sockfd, client_socket, status, nbytes;
     char buffer[2048];
     struct sockaddr_in serverAddress, clientAddress;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -39,13 +39,14 @@ int main()
     while (1)
     {
         int clientSize = sizeof(clientAddress);
-        newsockfd = accept(sockfd, (struct sockaddr *)&clientAddress, &clientSize);
-        if (newsockfd == -1)
+        client_socket = accept(sockfd, (struct sockaddr *)&clientAddress, &clientSize);
+        if (client_socket == -1)
         {
             perror("Error accepting new connection");
             continue; // Try to accept a new connection
         }
         printf("Accepted new connection from %s:%d\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
+
         int pid = fork(); // Spawn a new process for the new connection
         if (pid < 0)
         {
@@ -56,15 +57,26 @@ int main()
         {
             // Child process: handle the new connection
             close(sockfd); // Close the original socket in the child process
+            bzero(buffer, sizeof(buffer));
+
+            ssize_t bytes_received = recv(client_socket, buffer, sizeof(buffer), 0);
+            if (bytes_received < 0)
+            {
+                printf("Failed to receive data from client.\n");
+                close(client_socket);
+                continue;
+                ;
+            }
+            buffer[bytes_received] = '\0';
+            printf("Received message from client:\n%s\n", buffer);
+
             while (1)
             {
-                bzero(buffer, sizeof(buffer));
-                nbytes = read(newsockfd, buffer, sizeof(buffer));
-                if (nbytes <= 0)
-                {
-                    break; // Connection closed
-                }
-                DIR *dir;
+
+                // nbytes = read(client_socket, buffer, sizeof(buffer));
+                send_page(client_socket);
+                close(client_socket);
+                /*DIR *dir;
                 struct dirent *entry;
                 dir = opendir(ROOT_DIR);
                 char html_buffer[BUFFER_SIZE];
@@ -74,6 +86,9 @@ int main()
                     strcat(html_buffer, "<tr>");
                     strcat(html_buffer, "<td>");
                     strcat(html_buffer, entry->d_name);
+                    strcat(html_buffer, "</td>");
+                    strcat(html_buffer, "<td>");
+                    strcat(html_buffer, "0");
                     strcat(html_buffer, "</td>");
                     strcat(html_buffer, "</tr>");
                 }
@@ -93,7 +108,7 @@ int main()
                         strlen(html_buffer), html_buffer);
 
                 // Enviar la respuesta al cliente
-                ssize_t bytes_sent = send(newsockfd, response, strlen(response), 0);
+                ssize_t bytes_sent = send(client_socket, response, strlen(response), 0);
 
                 // Verificar si hubo un error en el envío
                 if (bytes_sent < 0)
@@ -102,14 +117,70 @@ int main()
                 }
             }
             printf("Disconnected from client %s:%d\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port));
-            close(newsockfd); // Close the client socket in the child process
+            close(client_socket); // Close the client socket in the child process
             exit(0);
         }
         else
         {
-            close(newsockfd); // Close the client socket in the parent process
+            close(client_socket); // Close the client socket in the parent process
+        }*/
+            }
+            close(sockfd);
+            return 0;
         }
     }
-    close(sockfd);
-    return 0;
+}
+void create_html()
+{
+    DIR *dir;
+    struct dirent *entry;
+    dir = opendir(ROOT_DIR);
+    char html_buffer[BUFFER_SIZE];
+    strcpy(html_buffer, "<html><head>Directorio</head><body><table><tr><th>Name</th><th>Size</th><th>Date</th></tr>");
+    while ((entry = readdir(dir)) != NULL)
+    {
+        strcat(html_buffer, "<tr>");
+        strcat(html_buffer, "<td>");
+        strcat(html_buffer, entry->d_name);
+        strcat(html_buffer, "</td>");
+        strcat(html_buffer, "<td>");
+        strcat(html_buffer, "0");
+        strcat(html_buffer, "</td>");
+        strcat(html_buffer, "</tr>");
+    }
+    strcat(html_buffer, "</table></body></html>\r\n");
+    FILE *html_file = fopen("content.html", "w");
+    if (html_file != NULL)
+    {
+        fprintf(html_file, "%s", html_buffer);
+        fclose(html_file);
+    }
+}
+void send_page(int client_socket)
+{
+    FILE *fp;
+    create_html();
+    char *buffer;
+    long size;
+    fp = fopen("content.html", "rb");
+    if (fp == NULL)
+    {
+        return;
+    }
+    fseek(fp, 0, SEEK_END);
+    size = ftell(fp);
+    rewind(fp);
+    buffer = (char *)malloc(sizeof(char) * size);
+    if (buffer == NULL)
+    {
+        fclose(fp);
+        return;
+    }
+    fread(buffer, 1, size, fp);
+    fclose(fp);
+    char http_response[2048];
+    sprintf(http_response, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\n\r\n%s", size, buffer);
+    send(client_socket, http_response, strlen(http_response), 0);
+    send(client_socket, buffer, size, 0);
+    free(buffer);
 }
