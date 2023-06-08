@@ -19,9 +19,9 @@
 #define YELLOW_COLOR "\033[0;33m"
 #define GREEN_COLOR "\033[0;32m"
 
-char *create_html(char **nombres, int cant);
+char *create_html(char **nombres, int cant, char **date, char **size);
 void url(char *str);
-void obtener_nombres(const char *root, char **names, int *numNames);
+void obtener_nombres(const char *root, char **names, int *numNames, char **date, char **size);
 void send_page(int client_socket, char *Root, char *original_Root);
 int main(int argc, char *argv[])
 {
@@ -108,7 +108,6 @@ void send_page(int client_socket, char *Root, char *original_Root)
 {
     char buffer[BUFFER_SIZE];
     ssize_t bytes_received;
-    printf(GREEN_COLOR "Root1: %s\n" DEFAULT_COLOR, original_Root);
 
     while ((bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0)) > 0)
     {
@@ -130,7 +129,6 @@ void send_page(int client_socket, char *Root, char *original_Root)
             char tempRoot[BUFFER_SIZE] = "";
             strcat(tempRoot, original_Root);
             strcat(tempRoot, path);
-            printf(RED_COLOR "Root: %s\n" DEFAULT_COLOR, tempRoot);
 
             int type = 0;
             DIR *dir = opendir(tempRoot);
@@ -165,13 +163,20 @@ void send_page(int client_socket, char *Root, char *original_Root)
                     }
                 }
                 char **nombres = (char **)malloc(cant * sizeof(char *));
+                char **date = (char **)malloc(cant * sizeof(char *));
+                char **size = (char **)malloc(cant * sizeof(char *));
                 if (nombres == NULL)
                 {
                     printf("Error: cannot assign memory\n");
                     exit(1);
                 }
-                obtener_nombres(Root, nombres, &cant);
-                contenido_html = create_html(nombres, cant);
+                obtener_nombres(Root, nombres, &cant, date, size);
+                for (int i = 0; i < cant; i++)
+                {
+                    printf("date2: %s\n", date[i]);
+                    printf("size2: %s\n", size[i]);
+                }
+                contenido_html = create_html(nombres, cant, date, size);
             }
             else if (type == 2)
             {
@@ -248,10 +253,13 @@ void url(char *str)
     }
     *p = '\0';
 }
-void obtener_nombres(const char *root, char **names, int *numNames)
+void obtener_nombres(const char *root, char **names, int *numNames, char **date, char **size)
 {
+    char size_str[20];
+    char date_str[20];
     DIR *dir;
     struct dirent *ent;
+    struct stat st;
 
     // Abrir el directorio
     dir = opendir(root);
@@ -269,8 +277,20 @@ void obtener_nombres(const char *root, char **names, int *numNames)
         {
             continue;
         }
-
+        char filepath[100];
+        snprintf(filepath, sizeof(filepath), "%s/%s", root, ent->d_name);
+        if (stat(filepath, &st) == 0)
+        {
+            sprintf(size_str, "%d bytes", st.st_size);
+            strftime(date_str, 20, "%d-%m-%y", localtime(&st.st_mtime));
+        }
         // Copiar el nombre del archivo o carpeta al array
+        char *temp_date = strdup(date_str);
+        char *temp_size = strdup(size_str);
+        date[i] = temp_date;
+        printf("date1: %s\n", date[i]);
+        size[i] = temp_size;
+        printf("size1: %s\n", size[i]);
         names[i] = strdup(ent->d_name);
         i++;
     }
@@ -281,26 +301,130 @@ void obtener_nombres(const char *root, char **names, int *numNames)
     closedir(dir);
 }
 
-char *create_html(char **nombres, int cant)
+char *create_html(char **nombres, int cant, char **date, char **size)
 {
     char *html_buffer = malloc(4096);
+    free(html_buffer);
     int i = 0;
-    strcpy(html_buffer, "<html><head>Directorio</head><body><table><tr><th>Name</th><th>Size</th><th>Date</th></tr>");
+    strcat(html_buffer, "<html>"
+                        "<head>"
+                        "<style>"
+                        "#sortButton {"
+                        "margin-bottom: 10px;"
+                        "background-color: chocolate;"
+                        "width: 10%;"
+                        "height: 36px;"
+                        "}"
+                        "h1 {"
+                        "color: limegreen;"
+                        "font-size: 50px;"
+                        "font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;"
+                        "text-align: center;"
+                        "text-transform: uppercase;"
+                        "letter-spacing: 1px;"
+                        "text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);"
+                        "}"
+
+                        "table {"
+                        "border-collapse: collapse;"
+                        "width: 95%;"
+                        "font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;"
+                        "border-radius: 8px;"
+                        "overflow: hidden;"
+                        "}"
+
+                        "th,"
+                        "td {"
+                        "padding: 8px;"
+                        "text-align: left;"
+                        "border-bottom: 1px solid #ddd;"
+                        "}"
+
+                        "th {"
+                        "background-color: burlywood;"
+                        "}"
+
+                        "tr:nth-child(even) {"
+                        "background-color: darkgray;"
+                        "}"
+                        "tr:nth-child(odd) {"
+                        "background-color: grey;"
+                        "}"
+
+                        "tr:hover {"
+                        "background-color: aliceblue;"
+                        "cursor: pointer;"
+                        "}"
+
+                        "td:first-child {"
+                        "border-left: 1px solid #ddd;"
+                        "}"
+
+                        "td:last-child {"
+                        "border-right: 1px solid #ddd;"
+                        "}"
+                        "</style>"
+                        "</head>"
+
+                        "<body>"
+                        "<h1>FILES</h1>"
+                        "<button id=\"sortButton\" onclick=\"sortTable(0)\">Sort By Name</button>"
+                        "<button id=\"sortButton\" onclick=\"sortTable(1)\">Sort By Size</button>"
+                        "<button id=\"sortButton\" onclick=\"sortTable(2)\">Sort By Date</button>"
+                        "<table id=\"myTable\">"
+                        "<tr>"
+                        "<th>Name</th>"
+                        "<th>Size</th>"
+                        "<th>Date</th>"
+                        "</tr>");
     while (i < cant)
     {
-        strcat(html_buffer, "<tr>");
-        strcat(html_buffer, "<td>");
+        strcat(html_buffer, "<tr onclick=\"SendRequest('");
         strcat(html_buffer, nombres[i]);
+        strcat(html_buffer, "')\"><td>");
+        strcat(html_buffer, nombres[i]);
+        strcat(html_buffer, "<td>");
+        strcat(html_buffer, size[i]);
         strcat(html_buffer, "</td>");
         strcat(html_buffer, "<td>");
-        strcat(html_buffer, "0");
-        strcat(html_buffer, "</td>");
-        strcat(html_buffer, "<td>");
-        strcat(html_buffer, "25-2-2010");
+        strcat(html_buffer, date[i]);
         strcat(html_buffer, "</td>");
         strcat(html_buffer, "</tr>");
         i++;
     }
-    strcat(html_buffer, "</table></body></html>\r\n");
+    strcat(html_buffer, "</table>"
+                        "<script>"
+                        "function SendRequest(name) {"
+                        "var current = window.location.href;"
+                        "console.log(current);"
+                        "if (current[current.length - 1] == '/') { window.location.href = current + name; }"
+                        "else { window.location.href = current + '/' + name }"
+                        "}"
+                        "function sortTable(column) {"
+                        "var table, rows, switching, i, x, y, shouldSwitch;"
+                        "table = document.getElementById(\"myTable\");"
+                        "switching = true;"
+                        "while (switching) {"
+                        "switching = false;"
+                        "rows = table.rows;"
+                        "for (i = 1; i < (rows.length - 1); i++) {"
+                        "shouldSwitch = false;"
+                        "x = rows[i].getElementsByTagName(\"TD\")[column];"
+                        "y = rows[i + 1].getElementsByTagName(\"TD\")[column];"
+                        "if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {"
+                        "shouldSwitch = true;"
+                        "break;"
+                        "}"
+                        "}"
+                        "if (shouldSwitch) {"
+                        "rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);"
+                        "switching = true;"
+                        "}"
+                        "}"
+                        "}"
+                        "</script>"
+                        "</body>"
+
+                        "</html>");
     return html_buffer;
 }
