@@ -5,8 +5,11 @@ Kevin Majim Ortega Alvarez
 Yoan Rene Ramos Corrales
 
 *Funcionalidades:*
+
 Funcionalidades Básicas (3 puntos)
+
 Funcionalidades Adicionales:
+
 El servidor muestra detalles de los archivos y directorios (Tamaño y fecha) y es capaz de ordenar por estos.
 Permite peticiones de mutiples clientes.
 Total de puntos: 5
@@ -15,7 +18,9 @@ Detalles de implementación:
 Al ejecutar el programa se le deben enviar dos parámetros:
 -el puerto por donde se va a escuchar 
 -la dirección del ordenador que se desea abrir
-Ejemplo:\n
+
+Ejemplo:
+
 ./ser 1025 /mnt/d/escuela
 donde ser es el nombre del archivo a correr
 
