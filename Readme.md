@@ -15,7 +15,7 @@ Detalles de implementación:
 Al ejecutar el programa se le deben enviar dos parámetros:
 -el puerto por donde se va a escuchar 
 -la dirección del ordenador que se desea abrir
-Ejemplo:
+Ejemplo:\n
 ./ser 1025 /mnt/d/escuela
 donde ser es el nombre del archivo a correr
 
