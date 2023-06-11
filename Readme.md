@@ -28,7 +28,7 @@ Para ejecutar el proyecto se le deben enviar dos parametros:
 
 el comando a ejecutar seria:
 
-./<NOMBRE_DEL_ARCHIVO> <PUERTO> <DIRECCION>
+./<NOMBRE DEL ARCHIVO> <PUERTO> <DIRECCION>
 
 
 Ejemplo:
