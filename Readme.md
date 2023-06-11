@@ -1,7 +1,9 @@
 Proyecto de Sistema Operativo: WebServer
 
 *Integrantes:*
+
 Kevin Majim Ortega Alvarez
+
 Yoan Rene Ramos Corrales
 
 *Funcionalidades:*
@@ -11,36 +13,39 @@ Funcionalidades Básicas (3 puntos)
 Funcionalidades Adicionales:
 
 El servidor muestra detalles de los archivos y directorios (Tamaño y fecha) y es capaz de ordenar por estos.
-Permite peticiones de mutiples clientes.
+Permite peticiones de múltiples clientes.
+
 Total de puntos: 5
 
 Instrucciones:
 
-Abrir el cmd en la direccion donde se encuentra el webserver.c, y correr el comando:
+1-Abrir el cmd en la dirección donde se encuentra el webserver.c, y correr el comando:
 
-gcc webserver.c -o <NOMBRE_DEL_ARCHIVO>
+gcc webserver.c -o "NOMBRE_DEL_ARCHIVO"
 
-Para ejecutar el proyecto se le deben enviar dos parametros:
+2-Para ejecutar el proyecto se le deben enviar dos parámetros:
 
 -el puerto por donde se va a escuchar (recomendamos usar cualquiera de estos tres: 1025,8080,8000)
 
--la direccion del ordenador que se va a mostrar
+-la dirección del ordenador que se va a mostrar
 
-el comando a ejecutar seria:
+El comando a ejecutar sería:
 
-./<NOMBRE DEL ARCHIVO> <PUERTO> <DIRECCION>
-
+./"NOMBRE DEL ARCHIVO" "PUERTO" "DIRECCION"
+                                           
+3-Una vez ejecutado el comando, abrir el navegador y escribir: 
+  
+localhost:"PUERTO"
 
 Ejemplo:
 
-./ser 1025 /mnt/d/escuela
+1- gcc webserver.c -o ser
+  
+2-./ser 1025 /mnt/d/escuela
 
-Una vez ejecutado el comando, abrir el navegador y escribir: 
-
-localhost:<PUERTO>
+3-localhost:1025
 
 Detalles de implementación:
-
 Con esto se creará un socket que escuchara por el puerto enviado.
 La respuesta que se le enviará al cliente en una página html, con los ficheros en el directorio enviado como parámetro
 Para navegar por los directorios basta con dar click en la fila con el nombre.
