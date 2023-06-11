@@ -14,15 +14,32 @@ El servidor muestra detalles de los archivos y directorios (Tamaño y fecha) y e
 Permite peticiones de mutiples clientes.
 Total de puntos: 5
 
-Detalles de implementación:
-Al ejecutar el programa se le deben enviar dos parámetros:
--el puerto por donde se va a escuchar 
--la dirección del ordenador que se desea abrir
+Instrucciones:
+
+Abrir el cmd en la direccion donde se encuentra el webserver.c, y correr el comando:
+
+gcc webserver.c -o <NOMBRE_DEL_ARCHIVO>
+
+Para ejecutar el proyecto se le deben enviar dos parametros:
+
+-el puerto por donde se va a escuchar (recomendamos usar cualquiera de estos tres: 1025,8080,8000)
+
+-la direccion del ordenador que se va a mostrar
+
+el comando a ejecutar seria:
+
+./<NOMBRE_DEL_ARCHIVO> <PUERTO> <DIRECCION>
+
 
 Ejemplo:
 
 ./ser 1025 /mnt/d/escuela
-donde ser es el nombre del archivo a correr
+
+Una vez ejecutado el comando, abrir el navegador y escribir: 
+
+localhost:<PUERTO>
+
+Detalles de implementación:
 
 Con esto se creará un socket que escuchara por el puerto enviado.
 La respuesta que se le enviará al cliente en una página html, con los ficheros en el directorio enviado como parámetro
